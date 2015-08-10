@@ -38,8 +38,15 @@ namespace Guitar.Lib
                     string testName = line.Trim();
                     ITest test = _factory.BuildTest(_currentCase, testName);
                     _currentCase.AddTest(test);
+                    OnTestDiscovered(test);
                 }
             }
+        }
+
+        protected virtual void OnTestDiscovered(ITest test)
+        {
+            TestDiscoveredHandler handler = TestDiscovered;
+            if (handler != null) handler(test);
         }
 
         public event TestDiscoveredHandler TestDiscovered;

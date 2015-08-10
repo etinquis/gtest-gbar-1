@@ -1,102 +1,84 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-//using Guitar.GTest;
-//using Guitar.Interfaces;
-//using NUnit.Framework;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Guitar.Lib;
+using Guitar.Tests.Util;
+using Moq;
+using NUnit.Framework;
 
-//namespace Guitar.Tests.GTest
-//{
-//    [TestFixture]
-//    class GTestTestListParserTests
-//    {
-//        private string SimpleTestList = 
-//            @"TestCase1.
-//              TestName1
-//              TestName2
-//            TestCase2.
-//              TestName";
+namespace Guitar.Tests.GTest
+{
+    [TestFixture]
+    class GTestTestListParserTests
+    {
+        private GTestTestListParser CreateParserUnderTest(ITestSuite testSuite)
+        {
+            return new GTestTestListParser(testSuite);
+        }
 
-//        private string GMockMainTestList =
-//            @"Running main() from gmock_main.cc
-//            TestCase1.
-//              TestName1
-//              TestName2
-//            TestCase2.
-//              TestName";
+        private ITestSuite CreateMockTestSuite(IList<ITestCase> testCases)
+        {
+            Moq.Mock<ITestSuite> suite = new Mock<ITestSuite>();
+            suite.SetupGet(s=>s.TestCases).Returns(testCases.ToArray());
+            suite.Setup(s => s.AddTestCase(It.IsAny<ITestCase>())).Callback<ITestCase>(testCases.Add);
+            return suite.Object;
+        }
 
-//        private GTestTestListParser CreateParserUnderTest()
-//        {
-//            return new GTestTestListParser();
-//        }
+        [Test]
+        public void ListParser_ParseNull()
+        {
+            var testCases = new List<ITestCase>();
+            ITestSuite mockSuite = CreateMockTestSuite(testCases);
+            var parserUnderTest = CreateParserUnderTest(mockSuite);
+            var parserValidator = new ParserValidator(parserUnderTest);
 
-//        [Test]
-//        public void Parse_GivenSimpleTestList_Returns2TestCases()
-//        {
-//            GTestTestListParser parserUnderTest = CreateParserUnderTest();
+            Assert.DoesNotThrow(() =>
+                parserUnderTest.ParseLine(null));
+        }
 
-//            var actual = parserUnderTest.Parse("", SimpleTestList);
+        [Test]
+        public void ListParser_ParseTestCase()
+        {
+            var testCases = new List<ITestCase>();
+            ITestSuite mockSuite = CreateMockTestSuite(testCases);
+            var parserUnderTest = CreateParserUnderTest(mockSuite);
+            var parserValidator = new ParserValidator(parserUnderTest);
 
-//            Assert.AreEqual(2, actual.TestCases.Count());
-//        }
+            parserUnderTest.ParseLine("TestCase.");
+            
+            Assert.AreEqual(1, testCases.Count());
+            Assert.False(parserValidator.TestDiscovered);
+        }
 
-//        [Test]
-//        public void Parse_GivenSimpleTestList_TestCasesHaveExpectedNames()
-//        {
-//            string expectedTest1 = "TestCase1";
-//            string expectedTest2 = "TestCase2";
+        [Test]
+        public void ListParser_ParseMultipleTestCases()
+        {
+            var testCases = new List<ITestCase>();
+            ITestSuite mockSuite = CreateMockTestSuite(testCases);
+            var parserUnderTest = CreateParserUnderTest(mockSuite);
+            var parserValidator = new ParserValidator(parserUnderTest);
 
-//            GTestTestListParser parserUnderTest = CreateParserUnderTest();
+            parserUnderTest.ParseLine("TestCase1.");
+            parserUnderTest.ParseLine("  Test");
+            parserUnderTest.ParseLine("TestCase2.");
+            parserUnderTest.ParseLine("  Test");
 
-//            var actual = parserUnderTest.Parse("", SimpleTestList);
+            Assert.AreEqual(2, testCases.Count());
+        }
 
-//            Assert.AreEqual(expectedTest1, actual.TestCases.ElementAt(0).RunName);
-//            Assert.AreEqual(expectedTest2, actual.TestCases.ElementAt(1).RunName);
-//        }
+        [Test]
+        public void ListParser_Discover()
+        {
+            var testCases = new List<ITestCase>();
+            ITestSuite mockSuite = CreateMockTestSuite(testCases);
+            var parserUnderTest = CreateParserUnderTest(mockSuite);
+            var parserValidator = new ParserValidator(parserUnderTest);
 
-//        [Test]
-//        public void Parse_GivenSimpleTestList_TestCasesHaveCorrectNumberOfChildTests()
-//        {
-//            GTestTestListParser parserUnderTest = CreateParserUnderTest();
+            parserUnderTest.ParseLine("TestCase.");
+            parserUnderTest.ParseLine("  Test");
 
-//            var actual = parserUnderTest.Parse("", SimpleTestList);
-
-//            Assert.AreEqual(2, actual.TestCases.ElementAt(0).Tests.Count());
-//            Assert.AreEqual(1, actual.TestCases.ElementAt(1).Tests.Count());
-//        }
-
-//        [Test]
-//        public void Parse_GivenSimpleTestList_TestCasesHaveCorrectChildTestNames()
-//        {
-//            List<string> expectedTests1 = new List<string>(new[] { "TestCase1.TestName1", "TestCase1.TestName2" });
-//            List<string> expectedTests2 = new List<string>(new[] { "TestCase2.TestName" });
-
-//            GTestTestListParser parserUnderTest = CreateParserUnderTest();
-
-//            var actual = parserUnderTest.Parse("", SimpleTestList);
-
-//            int testIdx = 0;
-//            foreach (string test in expectedTests1)
-//            {
-//                Assert.AreEqual(test, actual.TestCases.ElementAt(0).Tests.ElementAt(testIdx++).RunName);
-//            }
-//            testIdx = 0;
-//            foreach (string test in expectedTests2)
-//            {
-//                Assert.AreEqual(test, actual.TestCases.ElementAt(1).Tests.ElementAt(testIdx++).RunName);
-//            }
-//        }
-
-//        [Test]
-//        public void Parse_GivenGMockMainTestList_Returns2TestCases()
-//        {
-//            GTestTestListParser parserUnderTest = CreateParserUnderTest();
-
-//            var actual = parserUnderTest.Parse("", GMockMainTestList);
-
-//            Assert.AreEqual(2, actual.TestCases.Count());
-//        }
-//    }
-//}
+            Assert.True(parserValidator.TestDiscovered);
+        }
+    }
+}
