@@ -8,6 +8,7 @@ namespace Guitar.Lib
         bool _testListingStarted = false;
 
         private readonly ITestSuite _suite;
+        private GTestTestFactory _factory = new GTestTestFactory();
         ITestCase _currentCase = null;
         private const string TestCaseRegex = @".*\.$";
         string _testRegex = @"\w{2}.*$";
@@ -22,20 +23,20 @@ namespace Guitar.Lib
             if (!_testListingStarted && Regex.IsMatch(line, TestCaseRegex, RegexOptions.Singleline))
             {
                 _testListingStarted = true;
-                _currentCase = GTestTestFactory.BuildTestCase(_suite, line.TrimEnd('.').Trim());
+                _currentCase = _factory.BuildTestCase(_suite, line.TrimEnd('.').Trim());
                 _suite.AddTestCase(_currentCase);
             }
             else
             {
                 if (Regex.IsMatch(line, TestCaseRegex, RegexOptions.Singleline))
                 {
-                    _currentCase = GTestTestFactory.BuildTestCase(_suite, line.TrimEnd('.').Trim());
+                    _currentCase = _factory.BuildTestCase(_suite, line.TrimEnd('.').Trim());
                     _suite.AddTestCase(_currentCase);
                 }
                 else if (_currentCase != null && line != string.Empty)
                 {
                     string testName = line.Trim();
-                    ITest test = GTestTestFactory.BuildTest(_currentCase, testName);
+                    ITest test = _factory.BuildTest(_currentCase, testName);
                     _currentCase.AddTest(test);
                 }
             }

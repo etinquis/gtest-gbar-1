@@ -10,6 +10,7 @@ namespace Guitar.Lib.GTest
     public class GTestExtractor : ITestExtractor
     {
         private readonly bool _async;
+        private GTestTestFactory _factory = new GTestTestFactory();
 
         private class ExtractArgs
         {
@@ -46,7 +47,7 @@ namespace Guitar.Lib.GTest
         public ITestSuite ExtractFrom(string filePath)
         {
             System.IO.FileInfo info = new FileInfo(filePath);
-            ITestSuite suite = GTestTestFactory.BuildTestSuite(info.Name, filePath);
+            ITestSuite suite = _factory.BuildTestSuite(info.Name, filePath);
 
             Extract(new ExtractArgs() {Suite = suite});
             return suite;

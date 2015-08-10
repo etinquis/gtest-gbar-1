@@ -4,7 +4,9 @@ namespace Guitar.Lib
 {
     class TestCase : ITestCase
     {
-        private List<ITest> tests; 
+        private List<ITest> tests;
+        private GTestTestFactory factory = new GTestTestFactory();
+
         public TestCase(string name, ITestSuite suite)
         {
             Suite = suite;
@@ -15,7 +17,7 @@ namespace Guitar.Lib
 
         public void AddTest(string test)
         {
-            tests.Add(GTestTestFactory.BuildTest(this, test));
+            tests.Add(factory.BuildTest(this, test));
         }
 
         public TestResult LastRunResult { get; private set; }

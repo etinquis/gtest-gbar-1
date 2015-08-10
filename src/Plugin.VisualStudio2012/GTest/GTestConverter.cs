@@ -6,6 +6,7 @@ namespace Plugin.VisualStudio2012.GTest
 {
     class GTestConverter
     {
+        private GTestTestFactory _factory = new GTestTestFactory();
         public IEnumerable<ITestSuite> ConvertToGTest(TestCase[] cases, ITestLogger logger)
         {
             logger.Information("Converting Visual Studio TestCases to TestSuite");
@@ -17,7 +18,7 @@ namespace Plugin.VisualStudio2012.GTest
                 if (!testSuites.ContainsKey(testCase.Source))
                 {
                     logger.Information(string.Format("No existing source for {0}.  Creating one...", testCase.Source));
-                    testSuites[testCase.Source] = GTestTestFactory.BuildTestSuite(testCase.Source, testCase.Source);
+                    testSuites[testCase.Source] = _factory.BuildTestSuite(testCase.Source, testCase.Source);
                 }
 
                 ITestSuite suite = testSuites[testCase.Source];
@@ -40,12 +41,12 @@ namespace Plugin.VisualStudio2012.GTest
                 if (foundCase == null)
                 {
                     logger.Information(string.Format("Did not find test case {0}.  Creating it now...", caseName));
-                    foundCase = GTestTestFactory.BuildTestCase(suite, caseName);
+                    foundCase = _factory.BuildTestCase(suite, caseName);
                     suite.AddTestCase(foundCase);
                 }
 
                 logger.Information(string.Format("Adding test {0}...", testName));
-                foundCase.AddTest(GTestTestFactory.BuildTest(foundCase, testName));
+                foundCase.AddTest(_factory.BuildTest(foundCase, testName));
             }
 
             logger.Information("Preparing conversion result...");
