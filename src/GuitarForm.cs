@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Text;
 using System.Windows.Forms;
+using Guitar.Lib;
+using Guitar.Lib.ViewModels;
 
 namespace Guitar
 {
@@ -24,25 +21,43 @@ namespace Guitar
         private bool isTestFail = false;
         private String commmandlinePath;
         private bool closeOnEsc;
-        private Dictionary<string, ComboBox> controls;
 
+        private Dictionary<string, ComboBox> controls;
+        
         Configurator configurator;
         public GuitarForm()
         {
-            initializeForm(); // TODO: find a way to call GuitarForm() from GuitarForm(String fileName)
-            closeOnEsc = false;
-        }
-		public GuitarForm(String fileName)
-        {
             initializeForm();
 
+            testTree.RunRequested += TestTreeOnRunRequested;
+
+            closeOnEsc = false;
+        }
+
+        private void TestTreeOnRunRequested(object sender, RunRequestEventArgs runRequestEventArgs)
+        {
+            runResults1.TextLogger.Clear();
+            if (runRequestEventArgs.RunTarget is ITest)
+            {
+                runResults1.ViewModel.RequestRun(runRequestEventArgs.RunTarget as ITest, runResults1.TextLogger);
+            }
+            else if (runRequestEventArgs.RunTarget is ITestCase)
+            {
+                runResults1.ViewModel.RequestRun(runRequestEventArgs.RunTarget as ITestCase, runResults1.TextLogger);
+            }
+            else if (runRequestEventArgs.RunTarget is ITestSuite)
+            {
+                runResults1.ViewModel.RequestRun(runRequestEventArgs.RunTarget as ITestSuite, runResults1.TextLogger);
+            }
+        }
+
+        public GuitarForm(String fileName) : this()
+        {
             guitarReceivedAPathToATestExecutable();
             setFileNameInputbox(fileName);
         }
-        public GuitarForm(CommandLineParameters parameters)
+        public GuitarForm(CommandLineParameters parameters) : this()
         {
-            initializeForm();
-
             if (parameters.testFilePath != "")
             {
                 guitarReceivedAPathToATestExecutable();
@@ -93,7 +108,7 @@ namespace Guitar
             }
 
             goBtn.Enabled = canRun();
-            errorScreen3.Text = configurator.getFilePath();
+            //errorScreen3.Text = configurator.getFilePath();
 
             if (goBtn.Enabled)
             {
@@ -107,67 +122,11 @@ namespace Guitar
         }
         private void goBtn_Click(object sender, EventArgs e)
         {
-            int exitCode = 0;
-            try
-            {
-                autoNewComboboxesItemsInHistory();
-                configurator.saveSettings();
-                errorScreen3.Text = configurator.getFilePath();
-
-                cls();
-
-                GoogleTestOutputParser parser = new GoogleTestOutputParser(this.advanceProgressBar, this.lineRead);
-
-                bool monoException = false;
-                try
-                {
-                    calibrateProgressBar(parser.countTests(runGtest(true).StandardOutput));
-
-                    Process gtestexe = runGtest(false);
-                    parser.parseTests(gtestexe.StandardOutput);
-
-                    exitCode = gtestexe.ExitCode;
-                }
-                catch (System.ObjectDisposedException)
-                {
-                    monoException = true;
-                }
-
-                if (monoException)
-                {
-                    cls();
-                    errorScreen3.Text = "Please Retry, Failure during run due to StreamReader close\n" +
-                                        "(This is a known issue in Mono on Ubuntu.)";
-                }
-                else
-                {
-                    int disabled = (progressBar.Maximum - progressBar.Value);
-                    
-                    lineLabel.Text = "Done " + progressBar.Value + 
-                                     " of " + progressBar.Maximum + 
-                                     (disabled == 0 ? ". " : ". " + disabled + " are disabled.") +
-                                     ". Pass: " + ((progressBar.Value - Failures.Count ) * 100 / progressBar.Value) + "%" ;
-                    if (Failures.Count == 0 && exitCode == 0)
-                    {
-                        errorScreen3.Text = "All is well.";
-                        isTestFail = false;
-                    }
-                    else
-                    {
-                        if (exitCode != 0)
-                        {
-                            isTestFail = true;
-                            errorScreen3.Text = "Exit code != 0. Maybe an assertion failed.";
-                        }
-                    }
-                        
-                }
-                goBtn.Enabled = canRun();
-            }
-            catch (System.Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-            }
+			runResults1.TextLogger.Clear();
+	        foreach (var testSuite in testTree.ViewModel.Suites)
+	        {
+		        runResults1.ViewModel.RequestRun(testSuite, runResults1.TextLogger);
+	        }
         }
         private void autoNewComboboxesItemsInHistory()
         {
@@ -206,97 +165,46 @@ namespace Guitar
        
         private void cls()
         {
-            progressBar.Value = 0;
-            failureListBox.Items.Clear();
-            errorScreen3.Text = "";
-            errorScreen3.Refresh();
+            //progressBar.Value = 0;
+            //failureListBox.Items.Clear();
+            //errorScreen3.Text = "";
+            //errorScreen3.Refresh();
         }
 
         private void calibrateProgressBar(int n)
         {
-            Failures.Clear();
-            numTestsLabel.Text = "" + n;
-            numFailuresLabel.Text = "0";
-            failureListBox.Items.Clear();
+            //Failures.Clear();
+            //numTestsLabel.Text = "" + n;
+            //numFailuresLabel.Text = "0";
+            //failureListBox.Items.Clear();
 
-            progressBar.Value = 0;
-            progressBar.Minimum = 0;
-            progressBar.Maximum = n;
+            //progressBar.Value = 0;
+            //progressBar.Minimum = 0;
+            //progressBar.Maximum = n;
 
 
-            numTestsLabel.Refresh();
-            numFailuresLabel.Refresh();
-        }
-
-        private Process runGtest(bool onlyListTests)
-        {
-            Process gtestApp = new Process();
-            gtestApp.StartInfo.FileName = exeFilename.Text;
-            gtestApp.StartInfo.Arguments = buildArgs(onlyListTests);
-            gtestApp.StartInfo.UseShellExecute = false;
-            gtestApp.StartInfo.RedirectStandardOutput = true;
-            gtestApp.StartInfo.CreateNoWindow = (onlyListTests || (!onlyListTests && hideConsole.Checked));
-
-            if (startupFolder.Text != "")
-            {
-                if (System.IO.Directory.Exists(startupFolder.Text))
-                {
-                    gtestApp.StartInfo.WorkingDirectory = startupFolder.Text;
-                }
-                else
-                {
-                    MessageBox.Show("Selected startup folder not found.");
-                }
-            }
-
-            gtestApp.Start();
-            return gtestApp;
-        }
-        private string buildArgs(bool onlyListTests)
-        {
-            StringBuilder cl = new StringBuilder();
-            cl.Append(clParams.Text);
-            if (onlyListTests) cl.Append("--gtest_list_tests ");
-            if (shouldShuffle.Checked) cl.Append(' ').Append("--gtest_shuffle");
-            if (shouldRunDisabled.Checked) cl.Append(' ').Append("--gtest_also_run_disabled_tests");
-            if (filter.Text.Trim().Length > 0)
-            {
-                cl.Append(" --gtest_filter=").Append(filter.Text.Trim());
-            }
-            return cl.ToString();
-        }
-
-        private void lineRead(string line, bool countStage)
-        {
-            if (countStage)
-            {
-                lineLabel.Text = "Counting tests..." + line;
-            }
-            else
-            {
-                lineLabel.Text = line;
-            }
-            lineLabel.Refresh();
+            //numTestsLabel.Refresh();
+            //numFailuresLabel.Refresh();
         }
 
         private void advanceProgressBar(string testName, string error)
         {
-            if (error != null)
-            {
-                progressBar.ProgressBarColor = Color.Red;
-                Failures.Add(error);
-                numFailuresLabel.Text = "" + Failures.Count;
-                failureListBox.Items.Add(testName);
-                failureListBox.SelectedIndex = 0;
-                failureListBox.Refresh();
-            }
-            else
-            {
-                progressBar.ProgressBarColor = Color.Green;
-            }
+            //if (error != null)
+            //{
+            //    progressBar.ProgressBarColor = Color.Red;
+            //    Failures.Add(error);
+            //    numFailuresLabel.Text = "" + Failures.Count;
+            //    failureListBox.Items.Add(testName);
+            //    failureListBox.SelectedIndex = 0;
+            //    failureListBox.Refresh();
+            //}
+            //else
+            //{
+            //    progressBar.ProgressBarColor = Color.Green;
+            //}
 
-            progressBar.Value++;
-            progressBar.Refresh();
+            //progressBar.Value++;
+            //progressBar.Refresh();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -304,6 +212,7 @@ namespace Guitar
             DialogResult r = openFileDialog1.ShowDialog();
             if (DialogResult.OK == r)
             {
+                testTree.ViewModel.AddSuite(openFileDialog1.FileName);
                 exeFilename.Text = openFileDialog1.FileName;
             }
         }
@@ -328,7 +237,7 @@ namespace Guitar
 
         private void failureListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            errorScreen3.Text = Failures[failureListBox.SelectedIndex];
+            //errorScreen3.Text = Failures[failureListBox.SelectedIndex];
         }
 
         private void buttonSelectStartupFolder_Click(object sender, EventArgs e)
@@ -379,7 +288,7 @@ namespace Guitar
 
         private void aboutGuitarToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Guitar a UI for a Google Test (https://code.google.com/p/gtest-gbar/)", "About");
+            MessageBox.Show("Guitar a UI for a Google Test (https://code.google.com/p/gtest-gbar/).  Test status icons are from the silk icon set, courtesy of Mark James of FAMFAMFAM (http://www.famfamfam.com)", "About");
         }
 
 
@@ -406,10 +315,5 @@ namespace Guitar
                 Close();
             }
         }
-
-
-      
-
-        
     }
 }
