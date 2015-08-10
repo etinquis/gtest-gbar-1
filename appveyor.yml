@@ -1,0 +1,15 @@
+install:
+  - nuget install NUnit.Runners -Version 2.6.4 -OutputDirectory testrunner
+
+before_build:
+  - nuget restore src/Guitar.sln
+ 
+platform:
+  - Mixed Platforms
+ 
+configuration:
+  - Release
+  
+test:
+  assemblies:
+    - '**\*.Tests.dll'
