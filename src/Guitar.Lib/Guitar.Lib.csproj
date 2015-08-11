@@ -49,6 +49,7 @@
     <Compile Include="Interfaces\ITestExtractor.cs" />
     <Compile Include="Interfaces\ITest.cs" />
     <Compile Include="Interfaces\ITestCase.cs" />
+    <Compile Include="Interfaces\ITestFactory.cs" />
     <Compile Include="Interfaces\ITestLogger.cs" />
     <Compile Include="Interfaces\ITestResult.cs" />
     <Compile Include="Interfaces\ITestRunner.cs" />

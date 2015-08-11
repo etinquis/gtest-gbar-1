@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace Guitar.Lib
 {
@@ -8,12 +7,18 @@ namespace Guitar.Lib
     {
         public GTestTestSuite(string name, string assembly)
         {
+            if (name == null) throw new ArgumentNullException("name");
+            if(assembly == null) throw new ArgumentNullException("assembly");
+
+            if (string.IsNullOrEmpty(name)) throw new ArgumentException("Test Suite name cannot be empty", "name");
+            if(string.IsNullOrEmpty(assembly)) throw new ArgumentException("Test Suite Run Target cannot be empty", "assembly");
+
             Name = name;
             RunName = "*";
             RunTarget = assembly;
             _testCases = new List<ITestCase>();
         }
-
+            
         public string Name { get; private set; }
         public string RunName { get; private set; }
         public IEnumerable<ITest> Children { get; private set; }

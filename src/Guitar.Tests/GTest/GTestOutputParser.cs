@@ -1,6 +1,7 @@
 ﻿using System;
 using Guitar.Lib;
 using Guitar.Lib.GTest;
+using Guitar.Tests.Util;
 using Moq;
 using NUnit.Framework;
 using TestStatus = Guitar.Lib.TestStatus;
@@ -29,45 +30,6 @@ namespace Guitar.Tests.GTest
             mockSuite.Setup(s => s.TestCases).Returns(new[] {mockCase.Object});
 
             suite = mockSuite.Object;
-        }
-
-        private class ParserValidator
-        {
-            private GTestRunOutputParser _parser;
-
-            public bool TestDiscovered { get; private set; }
-            public bool TestStarted { get; private set; }
-            public bool TestFinished { get; private set; }
-            public TestResult FinishResult { get; private set; }
-
-            public ParserValidator(GTestRunOutputParser parser)
-            {
-                _parser = parser;
-
-                _parser.TestStarted += ParserOnTestStarted;
-                _parser.TestDiscovered += ParserOnTestDiscovered;
-                _parser.TestFinished += ParserOnTestFinished;
-
-                TestDiscovered = false;
-                TestStarted = false;
-                TestFinished = false;
-            }
-
-            private void ParserOnTestDiscovered(ITest test)
-            {
-                TestDiscovered = true;
-            }
-
-            private void ParserOnTestStarted(ITest test)
-            {
-                TestStarted = true;
-            }
-
-            private void ParserOnTestFinished(ITest test, TestResult result)
-            {
-                TestFinished = true;
-                FinishResult = result;
-            }
         }
 
         [Test]

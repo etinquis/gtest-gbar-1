@@ -8,7 +8,15 @@ namespace Guitar.Lib.GTest
     {
         public static string GetRunName(ITest test)
         {
-            return string.Format("{0}.{1}", test.Case.Name, test.Name);
+            if (test == null) return string.Empty;
+            if (test.Case != null)
+            {
+                return string.Format("{0}.{1}", test.Case.Name, test.Name);
+            }
+            else
+            {
+                return test.Name;
+            }
         }
 
         public static string GetRunName(ITestCase testCase)

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Guitar.Lib.GTest
 {
@@ -8,6 +6,11 @@ namespace Guitar.Lib.GTest
     {
         public GTest(string name, ITestCase testCase)
         {
+            if(name == null) throw new ArgumentNullException("name");
+            if(testCase == null) throw new ArgumentNullException("testCase");
+
+            if(string.IsNullOrEmpty(name)) throw new ArgumentException("Test Name cannot be null", "name");
+
             Name = name;
             Case = testCase;
 

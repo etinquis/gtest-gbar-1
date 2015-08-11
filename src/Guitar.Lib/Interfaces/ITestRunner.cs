@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Guitar.Lib
 {
-    interface ITestRunner
+    public interface ITestRunner
     {
         void Run(ITestSuite testSuite);
         void Run(ITestCase testCase);

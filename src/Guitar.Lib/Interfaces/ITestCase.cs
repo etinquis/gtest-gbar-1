@@ -8,6 +8,7 @@ namespace Guitar.Lib
     public interface ITestCase 
     {
         string Name { get; }
+        string Description { get; }
         ITestSuite Suite { get; }
         ITest[] Tests { get; }
 

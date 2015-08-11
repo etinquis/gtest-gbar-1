@@ -1,20 +1,29 @@
-﻿namespace Guitar.Lib
+﻿using System;
+using Guitar.Lib.GTest;
+using Guitar.Lib.Interfaces;
+
+namespace Guitar.Lib
 {
-    public static class GTestTestFactory
+    public class GTestTestFactory : ITestFactory
     {
-        public static ITest BuildTest(ITestCase testCase, string testName)
+        public ITest BuildTest(ITestCase testCase, string testName)
         {
             return new GTest.GTest(testName, testCase);
         }
 
-        public static ITestCase BuildTestCase(ITestSuite suite, string testCaseName)
+        public ITestCase BuildTestCase(ITestSuite suite, string testCaseName)
         {
-            return new TestCase(testCaseName, suite);
+            return new GTestTestCase(testCaseName, suite);
         }
 
-        public static ITestSuite BuildTestSuite(string suiteName, string suiteFile)
+        public ITestSuite BuildTestSuite(string suiteName, string suiteFile)
         {
             return new GTestTestSuite(suiteName, suiteFile);
+        }
+
+        public ITestRunner BuildRunner(ITestLogger logger)
+        {
+            return new GTestRunner(logger);
         }
     }
 }
