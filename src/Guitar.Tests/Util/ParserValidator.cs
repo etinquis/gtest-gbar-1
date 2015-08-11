@@ -11,6 +11,7 @@ namespace Guitar.Tests.Util
         private ITestRunOutputParser _parser;
 
         public bool TestDiscovered { get; private set; }
+        public ITest DiscoveredTest { get; private set; }
         public bool TestStarted { get; private set; }
         public bool TestFinished { get; private set; }
         public TestResult FinishResult { get; private set; }
@@ -31,6 +32,7 @@ namespace Guitar.Tests.Util
         private void ParserOnTestDiscovered(ITest test)
         {
             TestDiscovered = true;
+            DiscoveredTest = test;
         }
 
         private void ParserOnTestStarted(ITest test)

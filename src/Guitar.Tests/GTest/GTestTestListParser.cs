@@ -80,5 +80,20 @@ namespace Guitar.Tests.GTest
 
             Assert.True(parserValidator.TestDiscovered);
         }
+
+        [Test]
+        public void ListParser_ParameterizedTestWithEllipsis()
+        {
+            var testCases = new List<ITestCase>();
+            ITestSuite mockSuite = CreateMockTestSuite(testCases);
+            var parserUnderTest = CreateParserUnderTest(mockSuite);
+            var parserValidator = new ParserValidator(parserUnderTest);
+
+            parserUnderTest.ParseLine("Unit_Test/Unit_Test.");
+            parserUnderTest.ParseLine("  testName/0  # GetParam() = When a test param is really long it gets truncated and ellipsized like this ...");
+
+            Assert.True(parserValidator.TestDiscovered);
+            Assert.AreEqual("Unit_Test/Unit_Test.testName/0", parserValidator.DiscoveredTest.FullyQualifiedName);
+        }
     }
 }
