@@ -76,7 +76,9 @@ namespace Guitar.Controls
 
                 foreach (var testCase in suite.TestCases)
                 {
-                    TreeNode caseNode = new TreeNode(testCase.Name);
+                    TreeNode caseNode =
+                        new TreeNode(String.Format("{0} {1}", testCase.Name,
+                            !string.IsNullOrEmpty(testCase.Description) ? " # " + testCase.Description : ""));
                     caseNode.Tag = testCase;
                     caseNode.StateImageKey = NOTRUN_IMG;
 

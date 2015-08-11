@@ -15,7 +15,7 @@ namespace Guitar.Lib
 
             if (name.Contains("#"))
             {
-                string description = name.Substring(name.IndexOf('#') + 1);
+                Description = name.Substring(name.IndexOf('#') + 1);
                 name = name.Substring(0, name.IndexOf('#'));
             }
             name = name.TrimEnd(' ', '.').Trim();
@@ -29,6 +29,7 @@ namespace Guitar.Lib
         }
 
         public string Name { get; private set; }
+        public string Description { get; private set; }
         public ITestSuite Suite { get; private set; }
         public ITest[] Tests { get { return tests.ToArray(); } }
         public TestResult LastResult { get; private set; }
