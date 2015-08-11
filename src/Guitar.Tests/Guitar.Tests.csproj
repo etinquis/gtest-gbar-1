@@ -48,6 +48,7 @@
     <Compile Include="GTest\GTestOutputParser.cs" />
     <Compile Include="GTest\GTestTestFactory.cs" />
     <Compile Include="GTest\GTestTestListParser.cs" />
+    <Compile Include="GTest\GTestTestCase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util\ParserValidator.cs" />
   </ItemGroup>

@@ -13,7 +13,7 @@ namespace Guitar.Lib
 
         public ITestCase BuildTestCase(ITestSuite suite, string testCaseName)
         {
-            return new TestCase(testCaseName, suite);
+            return new GTestTestCase(testCaseName, suite);
         }
 
         public ITestSuite BuildTestSuite(string suiteName, string suiteFile)

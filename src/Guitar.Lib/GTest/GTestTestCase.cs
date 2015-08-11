@@ -1,32 +1,32 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Guitar.Lib
 {
-    class TestCase : ITestCase
+    class GTestTestCase : ITestCase
     {
         private List<ITest> tests;
         private GTestTestFactory factory = new GTestTestFactory();
 
-        public TestCase(string name, ITestSuite suite)
+        public GTestTestCase(string name, ITestSuite suite)
         {
+            if(name == null) throw new ArgumentNullException("name");
+            if(suite == null) throw new ArgumentNullException("suite");
+
             Suite = suite;
             Name = name;
-            LastRunResult = new TestResult() {Message = "Not Run", Outcome = TestStatus.NotRun};
+            LastResult = new TestResult() {Message = "Not Run", Outcome = TestStatus.NotRun};
             tests = new List<ITest>();
         }
 
-        public void AddTest(string test)
-        {
-            tests.Add(factory.BuildTest(this, test));
-        }
-
-        public TestResult LastRunResult { get; private set; }
         public string Name { get; private set; }
         public ITestSuite Suite { get; private set; }
         public ITest[] Tests { get { return tests.ToArray(); } }
         public TestResult LastResult { get; private set; }
         public void AddTest(ITest test)
         {
+            if(test == null) throw new ArgumentNullException("test");
+
             tests.Add(test);
             test.TestCompleted += TestOnTestCompleted;
         }
@@ -53,8 +53,8 @@ namespace Guitar.Lib
                 }
             }
 
-            LastRunResult = new TestResult() {Outcome = status};
-            OnResultUpdated(LastRunResult);
+            LastResult = new TestResult() {Outcome = status};
+            OnResultUpdated(LastResult);
         }
     }
 }
