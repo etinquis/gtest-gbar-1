@@ -95,5 +95,20 @@ namespace Guitar.Tests.GTest
             Assert.True(parserValidator.TestDiscovered);
             Assert.AreEqual("Unit_Test/Unit_Test.testName/0", parserValidator.DiscoveredTest.FullyQualifiedName);
         }
+
+        [Test]
+        public void ListParser_TypeParameterizedTestCase()
+        {
+            var testCases = new List<ITestCase>();
+            ITestSuite mockSuite = CreateMockTestSuite(testCases);
+            var parserUnderTest = CreateParserUnderTest(mockSuite);
+            var parserValidator = new ParserValidator(parserUnderTest);
+
+            parserUnderTest.ParseLine("TestWithParticularType/TestWithTypeParam/0.  # TypeParam = class some::namespace::TestType");
+            parserUnderTest.ParseLine("  Test");
+
+            Assert.True(parserValidator.TestDiscovered);
+            Assert.AreEqual("TestWithParticularType/TestWithTypeParam/0.Test", parserValidator.DiscoveredTest.FullyQualifiedName);
+        }
     }
 }

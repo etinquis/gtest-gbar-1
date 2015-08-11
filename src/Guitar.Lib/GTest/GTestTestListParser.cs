@@ -10,7 +10,7 @@ namespace Guitar.Lib
         private readonly ITestSuite _suite;
         private GTestTestFactory _factory = new GTestTestFactory();
         ITestCase _currentCase = null;
-        private const string TestCaseRegex = @".*[^\.]\.$";
+        private const string TestCaseRegex = @".*[^\.]\.(\ +#.*)?$";
         string _testRegex = @"\w{2}.*$";
         public GTestTestListParser(ITestSuite suite)
         {

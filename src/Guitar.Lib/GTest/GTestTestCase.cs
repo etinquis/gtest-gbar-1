@@ -13,6 +13,15 @@ namespace Guitar.Lib
             if(name == null) throw new ArgumentNullException("name");
             if(suite == null) throw new ArgumentNullException("suite");
 
+            if (name.Contains("#"))
+            {
+                string description = name.Substring(name.IndexOf('#') + 1);
+                name = name.Substring(0, name.IndexOf('#'));
+            }
+            name = name.TrimEnd(' ', '.').Trim();
+
+            if (string.IsNullOrEmpty(name)) throw new ArgumentException("Name cannot be empty, and must consist of more than ' 's and '.'s", "name");
+
             Suite = suite;
             Name = name;
             LastResult = new TestResult() {Message = "Not Run", Outcome = TestStatus.NotRun};
